@@ -1,0 +1,1111 @@
+<style>
+  :root {
+    --bg: #d8dce4; --surface: #eaecf2; --border: #b8bfcc;
+    --red: #d63031; --orange: #e17055; --yellow: #d4a017;
+    --green: #00a854; --blue: #0078d4; --dim: #9aa5b4;
+    --text: #1a202c; --muted: #5a6474;
+    --panel: #dfe2ea;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 14px;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(214,48,49,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,120,212,0.05) 0%, transparent 60%);
+  }
+  .container { width:100%; max-width:660px; }
+
+  .header { text-align:center; margin-bottom:12px; }
+  .header-top { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px; }
+  .status-dot { width:10px; height:10px; border-radius:50%; background:var(--red); animation:pulse-dot 1.4s ease-in-out infinite; }
+  @keyframes pulse-dot {
+    0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(255,45,45,0.6); }
+    50%{ opacity:0.7; box-shadow:0 0 0 6px rgba(255,45,45,0); }
+  }
+  h1 { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:4px; color:var(--text); }
+  .subtitle { font-size:0.75rem; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
+
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .panel-label { font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+
+  .time-field label { display:block; font-size:0.6rem; color:var(--muted); margin-bottom:4px; letter-spacing:1.5px; text-transform:uppercase; }
+  .time-field input, .time-field select {
+    width:100%; background:transparent; border:none;
+    color:var(--text); font-family:'Share Tech Mono',monospace;
+    font-size:0.95rem; outline:none; -webkit-appearance:none;
+  }
+  .time-field select option { background:#fff; }
+
+  /* ── SEGMENTED CONTROL BAR ── */
+  .ctrl-bar {
+    display:flex; align-items:stretch;
+    border:1px solid var(--border); border-radius:8px;
+    overflow:hidden; background:var(--surface);
+  }
+  .ctrl-seg {
+    display:flex; flex-direction:column; justify-content:center;
+    padding:9px 14px; border-right:1px solid var(--border);
+    flex:1;
+  }
+  .ctrl-seg:last-child { border-right:none; }
+
+  .ctrl-seg-date { flex:0 0 130px; }
+  .ctrl-seg-time { flex:0 0 160px; }
+  .ctrl-seg-window { flex:1; }
+
+  .ctrl-time-row { display:flex; align-items:center; gap:8px; }
+  .ctrl-time-row input { flex:1; font-size:0.95rem; background:transparent; border:none; color:var(--text); font-family:'Share Tech Mono',monospace; outline:none; }
+
+  .btn-now {
+    background:rgba(0,120,212,0.1); border:1px solid rgba(0,120,212,0.4);
+    color:var(--blue); border-radius:5px; padding:4px 9px;
+    font-size:0.62rem; letter-spacing:1px; cursor:pointer;
+    font-family:'Share Tech Mono',monospace; transition:all 0.2s; white-space:nowrap; flex-shrink:0;
+  }
+  .btn-now:hover { background:rgba(0,120,212,0.2); }
+
+  .ctrl-window-row { display:flex; align-items:center; gap:6px; }
+  .ctrl-window-row input[type="number"] {
+    width:52px; background:#fff; border:1px solid var(--border);
+    border-radius:5px; color:var(--text); font-family:'Share Tech Mono',monospace;
+    font-size:0.88rem; padding:5px 6px; outline:none; text-align:center; flex-shrink:0;
+  }
+  .ctrl-window-row input[type="number"]:focus { border-color:var(--blue); }
+
+  .btn-window {
+    background:var(--panel); border:1px solid var(--border);
+    color:var(--muted); border-radius:5px; padding:5px 10px;
+    font-size:0.68rem; font-family:'Share Tech Mono',monospace;
+    cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  }
+  .btn-window:hover { background:rgba(0,120,212,0.08); border-color:rgba(0,120,212,0.4); color:var(--blue); }
+  .btn-window.sel { background:rgba(0,120,212,0.15); border-color:var(--blue); color:var(--blue); }
+
+  .btn-calc {
+    background:linear-gradient(135deg,#c0392b,#e74c3c);
+    border:none; color:#fff; flex:0 0 130px;
+    font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:3px;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .btn-calc:hover { background:linear-gradient(135deg,#e74c3c,#ff6b5b); }
+
+
+  .db-badge {
+    display:inline-block; font-size:0.6rem; font-family:'Share Tech Mono',monospace;
+    padding:2px 6px; border-radius:10px; margin-left:5px; vertical-align:middle;
+  }
+  .db-badge.cached { background:rgba(0,168,84,0.12); color:#00753c; border:1px solid rgba(0,168,84,0.3); }
+  .db-badge.live   { background:rgba(0,120,212,0.1); color:#0064b3; border:1px solid rgba(0,120,212,0.3); }
+
+  .result-panel { display:none; animation:fadeIn 0.4s ease; }
+  .result-panel.visible { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+
+
+  .threat-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:4px 12px; border-radius:20px; font-size:0.7rem;
+    letter-spacing:2px; text-transform:uppercase; font-weight:500; align-self:center;
+  }
+
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
+  .stat-box { background:rgba(0,0,0,0.02); border:1px solid var(--border); border-radius:6px; padding:7px 10px; }
+  .stat-box .s-label { font-size:0.63rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+  .stat-box .s-val { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--text); }
+  .stat-box .s-sub { font-size:0.62rem; color:var(--muted); margin-top:1px; }
+
+
+
+  .prob-display { margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  .prob-label { font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .prob-inline { display:flex; align-items:baseline; gap:8px; }
+  .prob-number { font-family:'Bebas Neue',sans-serif; font-size:3.5rem; line-height:1; transition:color 0.4s; }
+  .prob-unit   { font-family:'Share Tech Mono',monospace; font-size:0.85rem; color:var(--muted); }
+  .prob-bar-wrap { background:rgba(0,0,0,0.08); border-radius:4px; height:5px; margin-top:8px; overflow:hidden; }
+  .prob-bar { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(0.16,1,0.3,1), background 0.4s; }
+  .chart-title { font-size:0.68rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .chart-svg-wrap { position:relative; width:100%; cursor:crosshair; }
+  #riskChart { width:100%; display:block; overflow:visible; }
+  .chart-axis { display:flex; justify-content:space-between; margin-top:2px; font-size:0.58rem; font-family:'Share Tech Mono',monospace; color:var(--dim); }
+
+  #chartTooltip {
+    position:fixed; pointer-events:none; z-index:9999;
+    background:rgba(20,30,50,0.96); border:1px solid rgba(255,255,255,0.15);
+    border-radius:6px; padding:7px 11px; display:none;
+    font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4); white-space:nowrap; line-height:1.7;
+    color: #e6edf3;
+  }
+  #chartTooltip .tt-time { color:rgba(255,255,255,0.55); font-size:0.65rem; letter-spacing:1px; }
+  #chartTooltip .tt-prob { font-size:1rem; font-weight:bold; }
+  #chartTooltip .tt-event { color:#f0883e; font-size:0.65rem; margin-top:2px; }
+
+  .advisory { background:rgba(214,48,49,0.07); border:1px solid rgba(214,48,49,0.25); border-radius:7px; padding:8px 12px; font-size:0.76rem; line-height:1.5; }
+  .advisory.low { background:rgba(0,168,84,0.07); border-color:rgba(0,168,84,0.25); }
+  .advisory.med { background:rgba(212,160,23,0.1); border-color:rgba(212,160,23,0.35); }
+
+  /* ── EVENTS CHART ─────────────────────────── */
+  .events-chart-section { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+  .events-chart-title { font-size:0.68rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .day-toggles { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .day-toggle {
+    display:flex; align-items:center; gap:5px; cursor:pointer;
+    font-size:0.65rem; font-family:'Share Tech Mono',monospace; letter-spacing:1px;
+    padding:3px 8px; border-radius:4px; border:1px solid var(--border);
+    background:#fff; color:var(--muted);
+    transition:all 0.15s; user-select:none;
+  }
+  .day-toggle input { display:none; }
+  .day-toggle.active { color:var(--text); border-color:rgba(0,0,0,0.2); background:rgba(0,0,0,0.06); }
+  .day-toggle .swatch { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .events-svg-wrap { position:relative; width:100%; }
+  #eventsChart { width:100%; display:block; overflow:visible; }
+  .advisory strong { display:block; margin-bottom:4px; font-size:0.68rem; letter-spacing:1.5px; text-transform:uppercase; }
+
+
+
+  .disclaimer { text-align:center; font-size:0.66rem; color:var(--dim); line-height:1.6; margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+  .source-tag { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); text-align:center; margin-top:10px; letter-spacing:1px; }
+
+  /* TIMELINE MODAL */
+  tr.db-row { cursor:pointer; }
+  tr.db-row:hover td { background:rgba(68,170,255,0.06); }
+
+  .tl-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.72); backdrop-filter:blur(4px);
+    z-index:1000; align-items:center; justify-content:center; padding:20px;
+  }
+  .tl-overlay.open { display:flex; animation:fadeIn 0.2s ease; }
+  .tl-modal {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:20px; width:100%; max-width:680px;
+    position:relative; max-height:90vh; overflow-y:auto;
+  }
+  .tl-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+  .tl-title { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:3px; color:var(--text); }
+  .tl-meta { font-size:0.68rem; color:var(--muted); font-family:'Share Tech Mono',monospace; margin-top:3px; }
+  .tl-close {
+    background:rgba(0,0,0,0.05); border:1px solid var(--border);
+    color:var(--muted); border-radius:8px; padding:6px 12px;
+    font-size:0.9rem; cursor:pointer; transition:all 0.15s; flex-shrink:0;
+  }
+  .tl-close:hover { background:rgba(214,48,49,0.1); border-color:var(--red); color:var(--red); }
+  .tl-chart-section { margin-bottom:10px; }
+  .tl-chart-label { font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .tl-svg-wrap { position:relative; width:100%; cursor:crosshair; }
+  #tlRiskChart { width:100%; display:block; overflow:visible; }
+  .tl-axis {
+    display:flex; justify-content:space-between; margin-top:2px;
+    font-size:0.58rem; font-family:'Share Tech Mono',monospace; color:var(--dim);
+  }
+  .tl-peaks { margin-top:12px; }
+  .tl-peaks-title { font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .tl-peak-list { display:flex; flex-wrap:wrap; gap:5px; }
+  .tl-peak-chip {
+    background:rgba(180,100,0,0.1); border:1px solid rgba(180,100,0,0.3);
+    border-radius:5px; padding:3px 9px;
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:#7a4500;
+  }
+  .tl-stats { display:flex; gap:8px; margin-top:12px; }
+  .tl-stat { flex:1; background:rgba(0,0,0,0.03); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
+  .tl-stat .ts-l { font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+  .tl-stat .ts-v { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--text); }
+</style>
+</head>
+<body>
+<div id="chartTooltip">
+  <div class="tt-time" id="ttTime"></div>
+  <div class="tt-prob" id="ttProb"></div>
+  <div class="tt-event" id="ttEvent"></div>
+</div>
+<div class="container">
+
+  <div class="header">
+    <div class="header-top">
+      <div class="status-dot"></div>
+      <h1>TEL AVIV ALERT RISK</h1>
+      <div class="status-dot"></div>
+    </div>
+    <div class="subtitle" id="subtitleRange">Missile Probability Estimator · Iran / Hezbollah</div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="ctrl-bar">
+      <div class="ctrl-seg ctrl-seg-date">
+        <div class="time-field">
+          <label>Date</label>
+          <select id="dateSelect"></select>
+        </div>
+      </div>
+      <div class="ctrl-seg ctrl-seg-time">
+        <div class="time-field">
+          <label>Time</label>
+          <div class="ctrl-time-row">
+            <input type="time" id="timeInput">
+            <button class="btn-now" onclick="setNow()">NOW</button>
+          </div>
+        </div>
+      </div>
+      <div class="ctrl-seg ctrl-seg-window">
+        <div class="time-field">
+          <label>Window</label>
+          <div class="ctrl-window-row">
+            <input type="number" id="windowInput" value="10" min="1" max="1440">
+            <button class="btn-window" onclick="setWindow(5,this)">5</button>
+            <button class="btn-window sel" onclick="setWindow(10,this)">10</button>
+            <button class="btn-window" onclick="setWindow(30,this)">30</button>
+            <button class="btn-window" onclick="setWindow(60,this)">60</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-calc" onclick="calculate()">CALCULATE</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="panel result-panel" id="resultPanel">
+    <div class="prob-display">
+      <div class="prob-label" id="probLabel">Probability of Attack in Next 10 Minutes</div>
+      <div class="prob-inline">
+        <span class="prob-number" id="probNumber">--</span>
+        <span class="prob-unit">%</span>
+        <span class="threat-badge" id="threatBadge">—</span>
+      </div>
+      <div class="prob-bar-wrap"><div class="prob-bar" id="probBar" style="width:0%"></div></div>
+    </div>
+    <div class="chart-section">
+      <div class="chart-title">Hourly Risk Profile · Historical Pattern <span style="opacity:0.6;font-size:0.58rem;letter-spacing:1px"><strong>curve = 60 min window</strong></span></div>
+      <div class="chart-svg-wrap" id="chartWrap">
+        <svg id="riskChart" height="180" viewBox="0 0 480 180" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="chart-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+    </div>
+    <div class="advisory" id="advisory"><strong>Advisory</strong>—</div>
+
+    <!-- EVENTS TIMELINE CHART -->
+    <div class="events-chart-section">
+      <div class="events-chart-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Actual Events · 24h Timeline</span>
+        <button onclick="forceResetStorage()" style="background:none;border:1px solid rgba(214,48,49,0.4);color:#d63031;font-size:0.6rem;font-family:'Share Tech Mono',monospace;letter-spacing:1px;padding:3px 8px;border-radius:4px;cursor:pointer;" title="Wipe stored data and reload from seed">↺ reset storage</button>
+      </div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-bottom:8px;font-family:'Share Tech Mono',monospace;letter-spacing:0.5px;">tap a date label to view attack log</div>
+      <div class="day-toggles" id="dayToggles"></div>
+      <div class="events-svg-wrap">
+        <svg id="eventsChart" height="110" viewBox="0 0 480 110" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="chart-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+    </div>
+  </div>
+
+
+
+
+  <!-- TIMELINE MODAL -->
+  <div class="tl-overlay" id="tlOverlay" onclick="closeTlIfBg(event)">
+    <div class="tl-modal">
+      <div class="tl-header">
+        <div>
+          <div class="tl-title" id="tlTitle">—</div>
+          <div class="tl-meta" id="tlMeta">—</div>
+        </div>
+        <button class="tl-close" onclick="closeTimeline()">✕ Close</button>
+      </div>
+      <div class="tl-chart-section">
+        <div class="tl-chart-label">Historical Risk Pattern · Day's Barrages Overlaid</div>
+        <div class="tl-svg-wrap" id="tlChartWrap">
+          <svg id="tlRiskChart" height="180" viewBox="0 0 480 180" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="tl-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+      </div>
+      <div class="tl-peaks">
+        <div class="tl-peaks-title">Confirmed Barrage Times (IDT)</div>
+        <div class="tl-peak-list" id="tlPeaks"></div>
+      </div>
+      <div class="tl-stats">
+        <div class="tl-stat"><div class="ts-l">Total Barrages</div><div class="ts-v" id="tlTotal">—</div></div>
+        <div class="tl-stat"><div class="ts-l">First – Last</div><div class="ts-v" id="tlPeakHour">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    Statistical estimate based on publicly reported attack data.<br>
+    <strong>NOT</strong> an official warning system. Always follow IDF Home Front Command (פיקוד העורף) instructions.<br>
+    <strong>If sirens sound — enter the nearest shelter immediately. ~90 seconds in Tel Aviv.</strong>
+  </div>
+  <div class="source-tag">DATA: oref.org.il · tzevaadom.co.il</div>
+</div>
+
+<script>
+// ─── SEED DATA ────────────────────────────────────────────────
+// Source: oref.org.il — "Tel Aviv - Across the Yarkon"
+// Each entry = one attack sequence (pre-alert warning time or direct siren)
+// "In a few minutes" warnings = oref pre-alert, siren fires seconds after
+// Unlabeled entries = siren without prior warning
+const SEED = {
+  '2026-02-28': {
+    label:'Feb 28', totalBarrages:10, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 10 attack sequences, Tel Aviv - Across the Yarkon.',
+    hourWeights:[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 9, 5, 2, 9, 2, 2, 5, 2],
+    events:[
+      {time:'12:28', note:'warning - pre-alert issued'},
+      {time:'13:03', note:'warning - pre-alert issued'},
+      {time:'14:36', note:'warning - pre-alert issued'},
+      {time:'15:44', note:'warning - pre-alert issued'},
+      {time:'16:27', note:'missile siren'},
+      {time:'16:48', note:'warning - pre-alert issued'},
+      {time:'17:29', note:'warning - pre-alert issued'},
+      {time:'19:01', note:'missile siren'},
+      {time:'19:18', note:'warning - pre-alert issued'},
+      {time:'22:30', note:'warning - pre-alert issued'}
+    ]
+  },
+  '2026-03-01': {
+    label:'Mar 1', totalBarrages:8, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 8 attack sequences, Tel Aviv - Across the Yarkon.',
+    hourWeights:[3, 9, 3, 3, 3, 3, 9, 3, 9, 9, 3, 3, 9, 9, 3, 3, 3, 3, 3, 3, 3, 9, 9, 3],
+    events:[
+      {time:'01:40', note:'warning - pre-alert issued'},
+      {time:'06:08', note:'warning - pre-alert issued'},
+      {time:'08:49', note:'warning - pre-alert issued'},
+      {time:'09:59', note:'warning - pre-alert issued'},
+      {time:'12:38', note:'warning - pre-alert issued'},
+      {time:'13:21', note:'warning - pre-alert issued'},
+      {time:'21:05', note:'warning - pre-alert issued'},
+      {time:'22:28', note:'warning - pre-alert issued'}
+    ]
+  },
+  '2026-03-02': {
+    label:'Mar 2', totalBarrages:5, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 5 attack sequences, Tel Aviv - Across the Yarkon.',
+    hourWeights:[2, 2, 2, 2, 2, 2, 2, 9, 2, 2, 2, 2, 9, 2, 2, 2, 2, 5, 2, 2, 2, 2, 2, 2],
+    events:[
+      {time:'07:02', note:'warning - pre-alert issued'},
+      {time:'07:30', note:'warning - pre-alert issued'},
+      {time:'12:02', note:'warning - pre-alert issued'},
+      {time:'12:31', note:'warning - pre-alert issued'},
+      {time:'17:26', note:'warning - pre-alert issued'}
+    ]
+  },
+  '2026-03-03': {
+    label:'Mar 3', totalBarrages:7, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 7 attack sequences, Tel Aviv - Across the Yarkon.',
+    hourWeights:[9, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 9, 9, 3, 9, 9, 3, 3, 3, 3, 3, 3, 9, 9],
+    events:[
+      {time:'00:38', note:'warning - pre-alert issued'},
+      {time:'11:07', note:'warning - pre-alert issued'},
+      {time:'12:22', note:'warning - pre-alert issued'},
+      {time:'14:45', note:'warning - pre-alert issued'},
+      {time:'15:11', note:'missile siren'},
+      {time:'22:42', note:'warning - pre-alert issued'},
+      {time:'23:08', note:'warning - pre-alert issued'}
+    ]
+  },
+  '2026-03-07': {
+    label:'Mar 7', totalBarrages:3, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 3 barrages, Tel Aviv.',
+    hourWeights:[9,0,0,0,0,9,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    events:[
+      {time:'00:37', note:'missile/rocket siren'},
+      {time:'05:01', note:'missile/rocket siren'},
+      {time:'06:23', note:'missile/rocket siren'}
+    ]
+  },
+  '2026-03-06': {
+    label:'Mar 6', totalBarrages:3, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 3 barrages, Tel Aviv.',
+    hourWeights:[0,0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,9,0,9,0,0],
+    events:[
+      {time:'10:16', note:'missile/rocket siren'},
+      {time:'19:19', note:'missile/rocket siren'},
+      {time:'21:57', note:'missile/rocket siren'}
+    ]
+  },
+  '2026-03-05': {
+    label:'Mar 5', totalBarrages:7, hezbollah:true, source:'oref', confidence:'high',
+    notes:'tzevaadom.co.il — 7 barrages, Tel Aviv all neighborhoods.',
+    hourWeights:[0,0,5,5,0,0,0,0,0,0,5,0,0,5,0,0,5,0,0,0,0,0,5,5],
+    events:[
+      {time:'02:28', note:'missile/rocket siren'},
+      {time:'03:07', note:'missile/rocket siren'},
+      {time:'10:30', note:'missile/rocket siren'},
+      {time:'13:47', note:'missile/rocket siren'},
+      {time:'16:30', note:'missile/rocket siren'},
+      {time:'22:57', note:'missile/rocket siren'},
+      {time:'23:04', note:'missile/rocket siren'}
+    ]
+  },
+  '2026-03-04': {
+    label:'Mar 4', totalBarrages:10, hezbollah:true, source:'oref', confidence:'high',
+    notes:'oref.org.il — 10 attack sequences, Tel Aviv - Across the Yarkon.',
+    hourWeights:[0,0,0,0,0,2,2,0,0,0,0,0,0,2,5,0,2,0,0,1,0,0,0,0],
+    events:[
+      {time:'05:52', note:'warning - pre-alert issued'},
+      {time:'06:10', note:'missile siren'},
+      {time:'13:47', note:'warning - pre-alert issued'},
+      {time:'14:02', note:'warning - pre-alert issued'},
+      {time:'14:20', note:'missile siren'},
+      {time:'14:30', note:'warning - pre-alert issued'},
+      {time:'14:49', note:'warning - pre-alert issued'},
+      {time:'16:07', note:'warning - pre-alert issued'},
+      {time:'16:26', note:'missile siren'},
+      {time:'19:14', note:'warning - pre-alert issued'}
+    ]
+  },
+};
+
+let db = {};
+
+// ─── STORAGE ──────────────────────────────────────────────────
+async function storageSave(k, v) {
+  try { await window.storage.set('tav_' + k, JSON.stringify(v)); } catch(e){}
+}
+async function storageGet(k) {
+  try { const r = await window.storage.get('tav_' + k); return r ? JSON.parse(r.value) : null; } catch(e){ return null; }
+}
+async function storageDelete(k) {
+  try { await window.storage.delete('tav_' + k); } catch(e){}
+}
+async function storageList() {
+  try { const r = await window.storage.list('tav_'); return r ? r.keys : []; } catch(e){ return []; }
+}
+
+async function loadDb() {
+  // ── Seed version guard ─────────────────────────────────────────
+  const SEED_VERSION = 'oref-v12';
+  let storedVersion = null;
+  try { const r = await window.storage.get('tav__version'); storedVersion = r ? r.value : null; } catch(e){}
+  if (storedVersion !== SEED_VERSION) {
+    try {
+      const staleKeys = await storageList();
+      for (const fk of staleKeys) await storageDelete(fk.replace('tav_',''));
+    } catch(e){}
+    try { await window.storage.set('tav__version', SEED_VERSION); } catch(e){}
+  }
+
+  db = JSON.parse(JSON.stringify(SEED));
+  const keys = await storageList();
+  for (const fk of keys) {
+    const k = fk.replace('tav_', '');
+    if (k === '_version') continue;
+    const v = await storageGet(k);
+    if (!v) continue;
+    const seedCount = SEED[k] ? (SEED[k].events || []).length : 0;
+    if ((v.events || []).length >= seedCount) db[k] = v;
+  }
+  computeHistoricalWeights();
+  buildDateSelect();
+  updateSubtitle();
+}
+
+async function forceResetStorage() {
+  if (!confirm('Wipe all stored data and reload from seed?')) return;
+  try { // outer try
+    const keys = await storageList();
+    for (const fk of keys) await storageDelete(fk.replace('tav_',''));
+    await window.storage.delete('tav__version');
+  } catch(e){}
+  await loadDb();
+  alert('✓ Storage cleared — reloaded from seed.');
+}
+
+// Pooled hour weights across all known days — used for risk curve & probability
+// Each day contributes its raw event times; we count events per hour then normalise 0-9
+function computeHistoricalWeights() {
+  const counts = new Array(24).fill(0);
+  let totalEvents = 0;
+  Object.values(db).forEach(d => {
+    (d.events || []).forEach(ev => {
+      const h = parseInt((ev.time || '').split(':')[0]);
+      if (!isNaN(h) && h >= 0 && h < 24) { counts[h]++; totalEvents++; }
+    });
+  });
+  const mx = Math.max(...counts, 1);
+  window._historicalWeights = counts.map(c => Math.max(1, Math.round((c / mx) * 9)));
+  window._historicalTotal   = totalEvents;
+  window._historicalDays    = Object.keys(db).length;
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────
+function buildDateSelect() {
+  const sel = document.getElementById('dateSelect');
+  const prev = sel.value;
+  sel.innerHTML = '';
+
+  // Always include today
+  const { iso: todayIso } = getIsraelTime();
+  const keys = Object.keys(db);
+  if (!keys.includes(todayIso)) keys.push(todayIso);
+  keys.sort().forEach(k => {
+    const o = document.createElement('option');
+    o.value = k;
+    const d = db[k];
+    if (d) {
+      o.textContent = d.label + (d.source === 'live' ? ' ★' : '');
+    } else {
+      // Today but not yet fetched
+      const dt = new Date(k + 'T12:00:00Z');
+      o.textContent = dt.toLocaleDateString('en-GB', {day:'numeric', month:'short'}) + ' (live)';
+    }
+    sel.appendChild(o);
+  });
+
+  const sorted = keys;
+  sel.value = (prev && (db[prev] || prev === todayIso)) ? prev : sorted[sorted.length - 1];
+}
+
+function updateSubtitle() {
+  try {
+  const keys = Object.keys(db).sort();
+  if (!keys.length) return;
+  const sr = document.getElementById('subtitleRange');
+  if (!sr) return;
+  sr.textContent =
+    `Missile Probability Estimator · Iran/Hezbollah · ${db[keys[0]].label} – ${db[keys[keys.length-1]].label}`;
+  } catch(err) { console.error('updateSubtitle error:', err); }
+}
+
+
+async function deleteEntry(k) {
+  try {
+  if (!db[k]) return;
+  if (!confirm(`Delete stored data for ${db[k].label}?`)) return;
+  delete db[k];
+  await storageDelete(k);
+  if (SEED[k]) db[k] = { ...SEED[k] };
+  computeHistoricalWeights();
+  buildDateSelect();
+  updateSubtitle();
+  } catch(err) { console.error('deleteEntry error:', err); }
+}
+
+
+
+// ─── CALCULATION ──────────────────────────────────────────────
+function getIsraelTime() {
+  // Intl API handles DST for Asia/Jerusalem automatically — no manual offset needed
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jerusalem',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  }).formatToParts(now);
+  const get = t => parts.find(p => p.type === t).value;
+  return {
+    iso:  get('year') + '-' + get('month') + '-' + get('day'),
+    hhmm: get('hour').padStart(2,'0') + ':' + get('minute').padStart(2,'0')
+  };
+}
+
+function setNow() {
+  const { iso, hhmm } = getIsraelTime();
+  document.getElementById('timeInput').value = hhmm;
+  document.getElementById('dateSelect').value = iso;
+  calculate();
+}
+
+function setWindow(mins, btn) {
+  document.getElementById('windowInput').value = mins;
+  document.querySelectorAll('.btn-window').forEach(b => b.classList.remove('sel'));
+  if (btn) btn.classList.add('sel');
+}
+
+function fmt(mins) {
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins/60), m = mins%60;
+  return m ? `${h}h ${m}m` : `${h} hour${h>1?'s':''}`;
+}
+
+function calculate() {
+  try {
+  const dateKey = document.getElementById('dateSelect').value;
+  const timeVal = document.getElementById('timeInput').value;
+  const wm = parseFloat(document.getElementById('windowInput').value) || 10;
+  if (!timeVal || !dateKey || !db[dateKey]) { alert('Select a valid date and time.'); return; }
+
+  const [hh, mm] = timeVal.split(':').map(Number);
+  const d = db[dateKey];
+
+  // Use pooled historical weights — not the selected day's own pattern
+  const w  = window._historicalWeights || d.hourWeights;
+  const tw = w.reduce((a,b)=>a+b,0) || 24;
+  // Rate: average barrages per day across all known days
+  const avgPerDay = window._historicalDays
+    ? (window._historicalTotal / window._historicalDays)
+    : d.totalBarrages;
+
+  let lambda = 0;
+  for (let m = 0; m < wm; m++) {
+    const wh = Math.floor((hh*60+mm+m)/60)%24;
+    lambda += (avgPerDay * w[wh]) / tw / 60;
+  }
+  const pct = Math.min((1 - Math.exp(-lambda)) * 100, 99.5);
+
+  document.getElementById('probLabel').textContent = `Probability of Attack in Next ${fmt(wm)}`;
+  const numEl = document.getElementById('probNumber');
+  numEl.textContent = pct.toFixed(1);
+
+  const sf = wm/10;
+  let color, level, bs, ac, at;
+  if      (pct >= Math.min(35*sf,80)) { color='#ff2d2d'; level='🔴 CRITICAL'; bs='background:rgba(214,48,49,0.12);border:1px solid rgba(214,48,49,0.5);color:#c0392b;'; ac=''; at=`HIGH risk for next ${fmt(wm)}. Stay near shelter (מרחב מוגן / מקלט). ~90 sec warning in Tel Aviv.`; }
+  else if (pct >= Math.min(15*sf,55)) { color='#ff7b00'; level='🟠 ELEVATED'; bs='background:rgba(225,112,85,0.15);border:1px solid rgba(225,112,85,0.5);color:#a04000;'; ac='med'; at=`ELEVATED risk over next ${fmt(wm)}. Keep shelter route in mind. Monitor פיקוד העורף.`; }
+  else if (pct >= Math.min(5*sf,30))  { color='#ffd000'; level='🟡 MODERATE'; bs='background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.5);color:#7a5800;'; ac='med'; at=`Moderate risk for next ${fmt(wm)}. Normal activity possible — stay alert.`; }
+  else                                 { color='#00e676'; level='🟢 LOW';      bs='background:rgba(0,168,84,0.1);border:1px solid rgba(0,168,84,0.3);color:#006630;'; ac='low'; at=`Relatively LOW risk for next ${fmt(wm)}. Always be ready to shelter within 90 sec.`; }
+
+  numEl.style.color = color;
+  document.getElementById('probBar').style.cssText = `width:${pct}%;background:${color}`;
+  document.getElementById('threatBadge').textContent = level;
+  document.getElementById('threatBadge').setAttribute('style', bs);
+
+  const adv = document.getElementById('advisory');
+  adv.className = 'advisory ' + ac;
+  adv.innerHTML = `<strong>Advisory</strong>${at}` + (d.notes ? `<br><span style="color:var(--muted);font-size:0.73rem">ⓘ ${d.notes}</span>` : '');
+
+  renderRiskChart(d, hh, mm, color, w, avgPerDay, dateKey);
+  buildDayToggles();
+  renderEventsChart();
+
+  document.getElementById('resultPanel').classList.add('visible');
+  document.getElementById('resultPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  } catch(err) { console.error('calculate() error:', err); }
+}
+
+
+// ─── SHARED SVG CHART RENDERER ───────────────────────────────
+// svg      : SVG DOM element to draw into
+// histW    : 24-element historical weights array
+// avgRate  : average barrages/day (for probability calc)
+// events   : array of {time, note} to draw as spikes
+// selFrac  : 0..1 selected time position, or null for none
+// hlColor  : highlight color for selected time marker
+// accentColor: override for the risk curve color (optional)
+function renderSvgChart(svg, histW, avgRate, events, selFrac, hlColor, accentColor) {
+  svg.innerHTML = '';
+
+  const W = 480, H = parseInt(svg.getAttribute('height')) || 180;
+  const PAD_L = 0, PAD_R = 0, PAD_T = 10, PAD_B = 18;
+  const cW = W - PAD_L - PAD_R;
+  const cH = H - PAD_T - PAD_B;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(ns, tag);
+    for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  const xOf = frac => PAD_L + frac * cW;
+  const curveColor = accentColor || 'rgba(255,80,80,0.9)';
+  const fillId = 'riskGrad_' + Math.random().toString(36).slice(2,7);
+
+  // Build smooth samples
+  const w = histW;
+  const maxW = Math.max(...w, 1);
+  const STEPS = 48;
+  const samples = [];
+  for (let s = 0; s <= STEPS; s++) {
+    const frac = s / STEPS;
+    const hf = frac * 24;
+    const h0 = Math.floor(hf) % 24;
+    const h1 = (h0 + 1) % 24;
+    const t  = hf - Math.floor(hf);
+    const ct = (1 - Math.cos(t * Math.PI)) / 2;
+    samples.push((w[h0] * (1-ct) + w[h1] * ct) / maxW);
+  }
+
+  // Defs
+  const defs = el('defs', {}, svg);
+  const grad = el('linearGradient', {id: fillId, x1:'0', y1:'0', x2:'0', y2:'1'}, defs);
+  el('stop', {offset:'0%',   'stop-color': curveColor, 'stop-opacity':'0.4'}, grad);
+  el('stop', {offset:'100%', 'stop-color': curveColor, 'stop-opacity':'0.03'}, grad);
+
+  // Grid lines every 6h
+  [0,6,12,18,24].forEach(h => {
+    el('line', {x1:xOf(h/24), y1:PAD_T, x2:xOf(h/24), y2:PAD_T+cH,
+      stroke:'rgba(0,0,0,0.07)', 'stroke-width':'1'}, svg);
+  });
+  el('line', {x1:PAD_L, y1:PAD_T+cH, x2:PAD_L+cW, y2:PAD_T+cH,
+    stroke:'rgba(0,0,0,0.08)', 'stroke-width':'1'}, svg);
+
+  // Selected time band
+  if (selFrac !== null && selFrac !== undefined) {
+    const bandW = cW / 48;
+    el('rect', {x:xOf(selFrac)-bandW/2, y:PAD_T, width:bandW, height:cH,
+      fill: hlColor||'#000', opacity:'0.08', rx:'2'}, svg);
+  }
+
+  // Area fill
+  const pts = samples.map((v,s) => [xOf(s/STEPS), PAD_T + cH - v*cH]);
+  let fillD = `M ${pts[0][0]} ${PAD_T+cH}`;
+  pts.forEach(([x,y]) => { fillD += ` L ${x} ${y}`; });
+  fillD += ` L ${pts[pts.length-1][0]} ${PAD_T+cH} Z`;
+  el('path', {d:fillD, fill:`url(#${fillId})`}, svg);
+
+  // Stroke
+  let lineD = `M ${pts[0][0]} ${pts[0][1]}`;
+  pts.slice(1).forEach(([x,y]) => { lineD += ` L ${x} ${y}`; });
+  el('path', {d:lineD, fill:'none', stroke:curveColor,
+    'stroke-width':'1.5', 'stroke-linejoin':'round'}, svg);
+
+  // Event spikes
+  (events||[]).forEach(ev => {
+    const fx = xOf(timeToFrac(ev.time));
+    const baseY = PAD_T + cH;
+    const tipY  = PAD_T + 4;
+    el('line', {x1:fx, y1:baseY, x2:fx, y2:tipY+8,
+      stroke:'#ffaa00', 'stroke-width':'2', opacity:'1'}, svg);
+    const dia = 4;
+    el('polygon', {
+      points:`${fx},${tipY} ${fx+dia},${tipY+dia} ${fx},${tipY+dia*2} ${fx-dia},${tipY+dia}`,
+      fill:'#ffcc00', stroke:'#ff8800', 'stroke-width':'0.5', opacity:'1'}, svg);
+  });
+
+  // Selected time marker
+  if (selFrac !== null && selFrac !== undefined && hlColor) {
+    const sx = xOf(selFrac);
+    const sampleIdx = Math.round(selFrac * STEPS);
+    el('line', {x1:sx, y1:PAD_T, x2:sx, y2:PAD_T+cH,
+      stroke:hlColor, 'stroke-width':'1.5', 'stroke-dasharray':'3 2', opacity:'0.9'}, svg);
+    el('circle', {cx:sx, cy: PAD_T + cH - (samples[sampleIdx]||0)*cH,
+      r:'4', fill:hlColor, stroke:'#0a0a0f', 'stroke-width':'1.5'}, svg);
+  }
+
+  // Legend
+  const ly = H - 3;
+  el('line', {x1:4,  y1:ly, x2:18, y2:ly, stroke:curveColor, 'stroke-width':'1.5'}, svg);
+  const lt1 = el('text', {x:22, y:ly, fill:'rgba(0,0,0,0.4)', 'font-size':'7', 'font-family':'monospace'}, svg);
+  lt1.textContent = 'RISK CURVE';
+  el('line', {x1:88, y1:ly-5, x2:88, y2:ly, stroke:'#ff9900', 'stroke-width':'1.5'}, svg);
+  const lt2 = el('text', {x:93, y:ly, fill:'rgba(0,0,0,0.4)', 'font-size':'7', 'font-family':'monospace'}, svg);
+  lt2.textContent = 'BARRAGE';
+  if (selFrac !== null && selFrac !== undefined) {
+    el('line', {x1:150, y1:ly, x2:164, y2:ly, stroke:hlColor, 'stroke-width':'1.5', 'stroke-dasharray':'3 2'}, svg);
+    const lt3 = el('text', {x:168, y:ly, fill:'rgba(0,0,0,0.4)', 'font-size':'7', 'font-family':'monospace'}, svg);
+    lt3.textContent = 'SELECTED TIME';
+  }
+
+  return samples; // for tooltip use
+}
+
+function renderRiskChart(d, selHour, selMin, hlColor, histWeights, avgPerDay, dateKey) {
+  try {
+  const w  = histWeights || d.hourWeights;
+  const selFrac = (selHour * 60 + (selMin||0)) / 1440;
+
+  // Filter future events if today
+  const { iso: todayIso, hhmm: nowHhmm } = getIsraelTime();
+  const isToday = dateKey === todayIso;
+  const allEvents = d.events || [];
+  const visEvents = isToday ? allEvents.filter(ev => ev.time <= nowHhmm) : allEvents;
+
+  const svg = document.getElementById('riskChart');
+  const samples = renderSvgChart(svg, w, avgPerDay, visEvents, selFrac, hlColor);
+
+  // Store state for tooltip
+  window._chartState   = { d, samples, STEPS:48, histWeights:w, avgPerDay };
+  window._chartDateKey = dateKey || '';
+  } catch(err) { console.error('renderRiskChart() error:', err); }
+}
+
+
+// ─── CHART TOOLTIP ───────────────────────────────────────────
+function setupChartTooltip() {
+  const wrap    = document.getElementById('chartWrap');
+  const tooltip = document.getElementById('chartTooltip');
+  if (!wrap) return;
+
+  // We store the current chart data so the mousemove handler can read it
+  window._chartState = null;
+
+  function probAtFrac(frac, state) {
+    if (!state) return null;
+    const { d, samples, STEPS, histWeights, avgPerDay } = state;
+    const w   = histWeights || d.hourWeights;
+    const tw  = w.reduce((a,b)=>a+b,0) || 24;
+    const rate = avgPerDay !== undefined ? avgPerDay : d.totalBarrages;
+    const hf  = frac * 24;
+    const hh  = Math.floor(hf) % 24;
+    const mm  = Math.round((hf - Math.floor(hf)) * 60);
+    const wm = 30;
+    let lambda = 0;
+    for (let m = 0; m < wm; m++) {
+      const wh = Math.floor((hh * 60 + mm + m) / 60) % 24;
+      lambda += (rate * w[wh]) / tw / 60;
+    }
+    const pct = Math.min((1 - Math.exp(-lambda)) * 100, 99.5);
+    return { pct, hh, mm };
+  }
+
+  function findNearestEvent(frac, state) {
+    if (!state || !state.d.events) return null;
+    const threshold = 0.012; // ~17 min proximity
+    let best = null, bestDist = Infinity;
+    state.d.events.forEach(ev => {
+      const ef = (parseInt(ev.time) * 60 + parseInt(ev.time.split(':')[1])) / 1440;
+      const dist = Math.abs(ef - frac);
+      if (dist < threshold && dist < bestDist) { best = ev; bestDist = dist; }
+    });
+    return best;
+  }
+
+  function onMove(e) {
+    if (!window._chartState) return;
+    const rect  = wrap.getBoundingClientRect();
+    const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : e.clientY;
+    const frac  = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const result = probAtFrac(frac, window._chartState);
+    if (!result) return;
+
+    const { pct, hh, mm } = result;
+    const timeStr = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+
+    // Color by prob
+    let col = '#00e676';
+    if (pct >= 80)      col = '#ff2d2d';
+    else if (pct >= 35) col = '#ff7b00';
+    else if (pct >= 15) col = '#ffd000';
+
+    document.getElementById('ttTime').textContent = timeStr + ' IDT · 30 min window';
+    const probEl = document.getElementById('ttProb');
+    probEl.textContent = pct.toFixed(1) + '% attack probability';
+    probEl.style.color = col;
+
+    const nearEv = findNearestEvent(frac, window._chartState);
+    const evEl = document.getElementById('ttEvent');
+    if (nearEv) {
+      evEl.textContent = '⚡ ' + nearEv.time + ' — ' + (nearEv.note || 'barrage');
+      evEl.style.display = 'block';
+    } else {
+      evEl.style.display = 'none';
+    }
+
+    // Position tooltip — keep it inside viewport
+    const TW = 220, TH = 70;
+    let tx = clientX + 14;
+    let ty = clientY - TH / 2;
+    if (tx + TW > window.innerWidth - 8)  tx = clientX - TW - 14;
+    if (ty < 8)                            ty = 8;
+    if (ty + TH > window.innerHeight - 8) ty = window.innerHeight - TH - 8;
+
+    tooltip.style.left    = tx + 'px';
+    tooltip.style.top     = ty + 'px';
+    tooltip.style.display = 'block';
+    tooltip.style.borderColor = col + '55';
+  }
+
+  function onLeave() { tooltip.style.display = 'none'; }
+
+  wrap.addEventListener('mousemove',  onMove);
+  wrap.addEventListener('touchstart', onMove, {passive:true});
+  wrap.addEventListener('touchmove',  onMove, {passive:true});
+  wrap.addEventListener('mouseleave', onLeave);
+  wrap.addEventListener('touchend',   onLeave);
+}
+
+
+// ─── TIMELINE MODAL ───────────────────────────────────────────
+function timeToFrac(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h * 60 + m) / 1440;
+}
+
+function openTimeline(dateKey) {
+  try {
+  const d = db[dateKey];
+  if (!d) return;
+
+  const tlTitle = document.getElementById('tlTitle'); if(tlTitle) tlTitle.textContent = d.label.toUpperCase() + ' · ATTACK LOG';
+  const src = d.source === 'live' ? 'live ★' : 'oref';
+  document.getElementById('tlMeta').textContent =
+    `${dateKey} · ${d.totalBarrages} barrage(s) · source: ${src}` +
+    (d.confidence ? ` · confidence: ${d.confidence}` : '');
+
+  const { iso: todayIso, hhmm: nowHhmm } = getIsraelTime();
+  const isToday = dateKey === todayIso;
+  const allEvents = d.events || [];
+  const events = isToday ? allEvents.filter(ev => ev.time <= nowHhmm) : allEvents;
+
+  // Render SVG: historical risk curve + this day's spikes, no selected-time marker
+  const histW   = window._historicalWeights || d.hourWeights;
+  const avgRate = window._historicalDays ? (window._historicalTotal / window._historicalDays) : d.totalBarrages;
+  renderSvgChart(document.getElementById('tlRiskChart'), histW, avgRate, events, null, null, '#44aaff');
+
+  // Barrage chips
+  const peakList = document.getElementById('tlPeaks');
+  peakList.innerHTML = '';
+  if (!events.length) {
+    peakList.innerHTML = '<span style="color:var(--muted);font-size:0.75rem">No timestamped data.</span>';
+  } else {
+    events.forEach(ev => {
+      const chip = document.createElement('div');
+      chip.className = 'tl-peak-chip';
+      chip.textContent = ev.time + (ev.note ? ' · ' + ev.note.slice(0,28) + (ev.note.length>28?'…':'') : '');
+      peakList.appendChild(chip);
+    });
+  }
+
+  document.getElementById('tlTotal').textContent = d.totalBarrages;
+  document.getElementById('tlPeakHour').textContent = events.length
+    ? events[0].time + '–' + events[events.length-1].time : '—';
+
+  const tlOverlay = document.getElementById('tlOverlay');
+  if (tlOverlay) tlOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  } catch(err) { console.error('openTimeline error:', err); }
+}
+
+function closeTimeline() {
+  document.getElementById('tlOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeTlIfBg(e) {
+  if (e.target === document.getElementById('tlOverlay')) closeTimeline();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTimeline(); });
+
+// ─── EVENTS TIMELINE CHART ────────────────────────────────────
+// One color per day — distinct palette
+const DAY_COLORS = ['#ff6b6b','#44aaff','#00e676','#ffd700','#ff9900','#cc44ff','#00cfcf','#ff69b4'];
+
+// Which days are checked — keyed by dateKey
+const eventsChartState = {};
+
+function buildDayToggles() {
+  try {
+  const container = document.getElementById('dayToggles');
+  if (!container) return;
+  container.innerHTML = '';
+  const days = Object.keys(db).filter(dk => !!db[dk]).sort();
+  days.forEach((dk, i) => {
+    // Default all checked
+    if (eventsChartState[dk] === undefined) eventsChartState[dk] = true;
+    const color = DAY_COLORS[i % DAY_COLORS.length];
+    const label = document.createElement('label');
+    label.className = 'day-toggle' + (eventsChartState[dk] ? ' active' : '');
+    label.innerHTML = `
+      <input type="checkbox" ${eventsChartState[dk] ? 'checked' : ''}>
+      <span class="swatch" style="background:${color}"></span>
+      ${db[dk].label}
+    `;
+    label.querySelector('input').addEventListener('change', function() {
+      eventsChartState[dk] = this.checked;
+      label.classList.toggle('active', this.checked);
+      renderEventsChart();
+    });
+    container.appendChild(label);
+  });
+  } catch(err) { console.error('buildDayToggles error:', err); }
+}
+
+function renderEventsChart() {
+  try {
+  const svg = document.getElementById('eventsChart');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 480, H = 110;
+  const PAD_L = 0, PAD_R = 0, PAD_T = 12, PAD_B = 18;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const days = Object.keys(db).sort();
+  const activeDays = days.filter(dk => db[dk] && eventsChartState[dk]);
+
+  // Grid lines at 6h intervals
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const x = PAD_L + f * innerW;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x); line.setAttribute('x2', x);
+    line.setAttribute('y1', PAD_T); line.setAttribute('y2', H - PAD_B);
+    line.setAttribute('stroke', 'rgba(0,0,0,0.07)');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  });
+
+  if (!activeDays.length) return;
+
+  // Row height per active day
+  const rowH = innerH / activeDays.length;
+
+  activeDays.forEach((dk, rowIdx) => {
+    const color = DAY_COLORS[days.indexOf(dk) % DAY_COLORS.length];
+    const y0 = PAD_T + rowIdx * rowH;
+    const yCtr = y0 + rowH / 2;
+
+    // Row baseline
+    const baseline = document.createElementNS('http://www.w3.org/2000/svg','line');
+    baseline.setAttribute('x1', PAD_L); baseline.setAttribute('x2', W - PAD_R);
+    baseline.setAttribute('y1', yCtr);  baseline.setAttribute('y2', yCtr);
+    baseline.setAttribute('stroke', 'rgba(0,0,0,0.08)');
+    baseline.setAttribute('stroke-width', '1');
+    baseline.setAttribute('stroke-dasharray', '2,4');
+    svg.appendChild(baseline);
+
+    // Day label on left — clickable to open attack log
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x', 4); lbl.setAttribute('y', yCtr + 4);
+    lbl.setAttribute('fill', color); lbl.setAttribute('font-size', '8');
+    lbl.setAttribute('font-family', "'Share Tech Mono',monospace");
+    lbl.setAttribute('opacity', '0.85');
+    lbl.setAttribute('style', 'cursor:pointer;text-decoration:underline;');
+    lbl.textContent = db[dk].label;
+    lbl.addEventListener('click', () => openTimeline(dk));
+    svg.appendChild(lbl);
+
+    // Event diamonds
+    const events = db[dk].events || [];
+    events.forEach(ev => {
+      const [hh, mm] = ev.time.split(':').map(Number);
+      const frac = (hh * 60 + mm) / 1440;
+      const x = PAD_L + frac * innerW;
+      const s = 5; // half-size of diamond
+
+      const diamond = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      diamond.setAttribute('points', `${x},${yCtr-s} ${x+s},${yCtr} ${x},${yCtr+s} ${x-s},${yCtr}`);
+      diamond.setAttribute('fill', color);
+      diamond.setAttribute('opacity', '0.85');
+      diamond.setAttribute('style', 'cursor:pointer');
+      svg.appendChild(diamond);
+
+      // JS tooltip on mousemove/mouseleave
+      const tipText = `${db[dk].label}  ·  ${ev.time}  ·  ${ev.note}`;
+      diamond.addEventListener('mouseenter', function(e) {
+        const tip = document.getElementById('chartTooltip');
+        tip.style.display = 'block';
+        tip.innerHTML = `<span class="tt-time">${db[dk].label}</span><br><span class="tt-prob">${ev.time}</span><br><span class="tt-event">${ev.note}</span>`;
+      });
+      diamond.addEventListener('mousemove', function(e) {
+        const tip = document.getElementById('chartTooltip');
+        tip.style.left = (e.clientX + 14) + 'px';
+        tip.style.top  = (e.clientY - 10) + 'px';
+      });
+      diamond.addEventListener('mouseleave', function() {
+        document.getElementById('chartTooltip').style.display = 'none';
+      });
+    });
+  });
+  } catch(err) { console.error('renderEventsChart() error:', err); }
+}
+
+
+window.addEventListener('load', async () => {
+  const { iso, hhmm } = getIsraelTime();
+  document.getElementById('timeInput').value = hhmm;
+  await loadDb();
+  setupChartTooltip();
+  calculate();
+});
+</script>
+</body>
+</html>
